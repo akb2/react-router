@@ -17,9 +17,7 @@ describe("useRoutePathState", () => {
 
   it("updates a path parameter without query params", () => {
     window.history.replaceState(null, "", "/users/42");
-    const { result } = renderHook(() => router.useRoutePathState<string>("id", "fallback"), {
-      wrapper: router.RouterProvider,
-    });
+    const { result } = renderHook(() => router.useRoutePathState<string>("id", "fallback"));
     act(() => result.current[1]("43"));
     expect(result.current[0]).toBe("43");
     expect(window.location.pathname).toBe("/users/43");

@@ -17,13 +17,10 @@ describe("useRoute", () => {
   });
 
   it("updates the match after navigation", () => {
-    const { result } = renderHook(
-      () => ({
-        match: router.useRoute("users.detail"),
-        navigate: router.useLocation()[1],
-      }),
-      { wrapper: router.RouterProvider },
-    );
+    const { result } = renderHook(() => ({
+      match: router.useRoute("users.detail"),
+      navigate: router.useLocation()[1],
+    }));
     expect(result.current.match[0]).toBe(true);
     act(() => result.current.navigate("home"));
     expect(result.current.match[0]).toBe(false);

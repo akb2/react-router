@@ -17,9 +17,7 @@ describe("useRouteQueryState", () => {
 
   it("updates query state on a route without path params", () => {
     window.history.replaceState(null, "", "/?tab=profile&page=2");
-    const { result } = renderHook(() => router.useRouteQueryState<string>("tab", "overview"), {
-      wrapper: router.RouterProvider,
-    });
+    const { result } = renderHook(() => router.useRouteQueryState<string>("tab", "overview"));
     act(() => result.current[1]("settings"));
     expect(result.current[0]).toBe("settings");
     expect(window.location.pathname).toBe("/");

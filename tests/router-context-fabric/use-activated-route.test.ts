@@ -18,6 +18,8 @@ describe("useActivatedRoute", () => {
     expect(result.current).toEqual({
       activatedRoute: routes.users.children.detail,
       routeKey: ["users", "detail"],
+      routeKeyString: "users.detail",
+      routeUrlMask: "",
       parents: [routes.users],
       pathParams: { id: "42" },
       queryParams: { tab: "profile" },
@@ -26,13 +28,10 @@ describe("useActivatedRoute", () => {
 
   // Known bug: a shorter path variant consumes segments before the longer variant is checked.
   it.fails("recognizes an alternative path spanning multiple segments", () => {
-    const { result } = renderHook(
-      () => ({
-        active: router.useActivatedRoute(),
-        navigate: router.useLocation()[1],
-      }),
-      { wrapper: router.RouterProvider },
-    );
+    const { result } = renderHook(() => ({
+      active: router.useActivatedRoute(),
+      navigate: router.useLocation()[1],
+    }));
     act(() => result.current.navigate("article", { slug: "hello", id: 7 }));
     expect(window.location.pathname).toBe("/articles/hello/7");
     expect(result.current.active.activatedRoute).toBe(routes.article);
@@ -46,13 +45,10 @@ describe("useActivatedRoute", () => {
   });
 
   it("updates when only the query string changes", () => {
-    const { result } = renderHook(
-      () => ({
-        active: router.useActivatedRoute(),
-        navigate: router.useLocation()[1],
-      }),
-      { wrapper: router.RouterProvider },
-    );
+    const { result } = renderHook(() => ({
+      active: router.useActivatedRoute(),
+      navigate: router.useLocation()[1],
+    }));
     act(() => result.current.navigate("home", null, { page: 2 }));
     expect(result.current.active.routeKey).toEqual(["home"]);
     expect(result.current.active.queryParams).toEqual({ page: "2" });

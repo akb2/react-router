@@ -1,19 +1,31 @@
 import { cleanup } from "@testing-library/react";
+import { createElement, useContext } from "react";
 import { afterEach, beforeEach, vi } from "vitest";
-import { routerContextFabric } from "../../src";
+import { routerContextFabric } from "../../src/fabrics/router-context-fabric";
+
+export { routerContextFabric };
+
+function Home() {
+  const config = useContext(router.RouterContext);
+  return createElement("span", null, config === routes ? "Routes available" : "No routes");
+}
+
+const Page = () => createElement("span", null, "Route page");
 
 export const routes = {
-  home: { path: "" },
+  home: { path: "", Template: Home },
   users: {
     path: "users",
-    children: { detail: { path: ":id" } },
+    Template: Page,
+    children: { detail: { path: ":id", Template: Page } },
   },
-  article: { paths: ["articles/:id", "articles/:slug/:id"] },
+  article: { paths: ["articles/:id", "articles/:slug/:id"], Template: Page },
   archive: {
     paths: ["archive", "history"],
-    children: { year: { paths: [":year", "year/:year"] } },
+    Template: Page,
+    children: { year: { paths: [":year", "year/:year"], Template: Page } },
   },
-  notFound: { isNotFound: true },
+  notFound: { isNotFound: true, Template: Page },
 };
 
 export const router = routerContextFabric(routes);

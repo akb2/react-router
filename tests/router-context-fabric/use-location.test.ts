@@ -12,9 +12,7 @@ describe("useLocation", () => {
   });
 
   it("navigates by route key without query params", () => {
-    const { result } = renderHook(() => router.useLocation(), {
-      wrapper: router.RouterProvider,
-    });
+    const { result } = renderHook(() => router.useLocation());
     act(() => result.current[1]("users.detail", { id: 42 }));
     expect(result.current[0]).toBe("/users/42");
   });
