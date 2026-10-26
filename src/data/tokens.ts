@@ -1,0 +1,1 @@
+export const TOKEN_LIB_PREFIX = '@akb2/react/';

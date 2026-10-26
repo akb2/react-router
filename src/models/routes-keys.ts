@@ -1,3 +1,5 @@
+import { ObjectChain } from "./object-chain";
+import { RoutesConfig } from "./routes-config";
 import type { RouteTree, RouteTreeChildren } from './routes-tree';
 
 type RoutesPathKeysMaxDepth = [unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown];
@@ -6,6 +8,8 @@ type JoinRouteKey<TPrefix extends string, TKey extends string> = TPrefix extends
 
 export type RouteKey<T> = Extract<keyof T, string>;
 
+export type RoutesKeys<Routes extends RoutesConfig> = ObjectChain<Routes> | RoutesPathKeys<Routes>;
+
 export type RoutesPathKeys<
   TRoutes extends RouteTree,
   TPrefix extends string = '',
@@ -13,9 +17,9 @@ export type RoutesPathKeys<
 > = TDepth extends RoutesPathKeysMaxDepth
   ? never
   : {
-      [K in RouteKey<TRoutes>]:
-        | JoinRouteKey<TPrefix, K>
-        | (RouteTreeChildren<TRoutes[K]> extends infer TChildren extends RouteTree
-            ? RoutesPathKeys<TChildren, JoinRouteKey<TPrefix, K>, [...TDepth, unknown]>
-            : never);
-    }[RouteKey<TRoutes>];
+    [K in RouteKey<TRoutes>]:
+    | JoinRouteKey<TPrefix, K>
+    | (RouteTreeChildren<TRoutes[K]> extends infer TChildren extends RouteTree
+      ? RoutesPathKeys<TChildren, JoinRouteKey<TPrefix, K>, [...TDepth, unknown]>
+      : never);
+  }[RouteKey<TRoutes>];

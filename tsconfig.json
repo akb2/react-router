@@ -10,7 +10,6 @@
     "rootDir": ".",
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "preact",
     "types": [
       "react",
       "react-dom"
@@ -27,6 +26,9 @@
       ],
       "@models/*": [
         "./src/models/*"
+      ],
+      "@tokens/*": [
+        "./src/tokens/*"
       ]
     }
   },
