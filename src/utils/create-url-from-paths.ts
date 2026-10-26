@@ -7,8 +7,8 @@ export const createUrlFromPaths = (
   safePathParams = false,
 ): string => {
   const joiner = '/';
-  const pathes = anyToArray(mixedPathes).reduce((acc, subMixedpathes) => {
-    const pathes = subMixedpathes.split(joiner);
+  const pathes = anyToArray(mixedPathes).reduce((acc, subMixedPathes) => {
+    const pathes = subMixedPathes.split(joiner);
 
     for (const path of pathes) {
       acc.push(path.startsWith(':') && !safePathParams ? anyToString(pathParams?.[path.slice(1)], VAR_SEGMENT_SYMBOL) : path);

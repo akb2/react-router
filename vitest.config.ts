@@ -14,6 +14,7 @@ export default defineConfig({
       "@data": fileURLToPath(new URL("./src/data", import.meta.url)),
       "@utils": fileURLToPath(new URL("./src/utils", import.meta.url)),
       "@models": fileURLToPath(new URL("./src/models", import.meta.url)),
+      "@fabrics": fileURLToPath(new URL("./src/fabrics", import.meta.url)),
       "@hooks": fileURLToPath(new URL("./src/hooks", import.meta.url)),
       "@tokens": fileURLToPath(new URL("./src/tokens", import.meta.url)),
     },

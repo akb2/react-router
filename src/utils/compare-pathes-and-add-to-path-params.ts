@@ -1,4 +1,9 @@
-export const comparePathesAndAddToPathParams = (currentPath: string, routePath: string, pathParams: Record<string, string>): boolean => {
+export const comparePathesAndAddToPathParams = (
+  currentPath: string,
+  routePath: string,
+  originalPathParams: Record<string, string>,
+): boolean => {
+  const pathParams = { ...originalPathParams };
   const currentPathes = currentPath.split('/');
   const routePathes = routePath.split('/');
 
@@ -15,6 +20,8 @@ export const comparePathesAndAddToPathParams = (currentPath: string, routePath: 
       return false;
     }
   }
+
+  Object.assign(originalPathParams, pathParams);
 
   return true;
 };

@@ -21,6 +21,9 @@
       "@hooks/*": [
         "./src/hooks/*"
       ],
+      "@fabrics/*": [
+        "./src/fabrics/*"
+      ],
       "@utils/*": [
         "./src/utils/*"
       ],
