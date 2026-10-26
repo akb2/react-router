@@ -14,6 +14,11 @@
       "vitest/globals"
     ],
     "paths": {
+      "@data/*": ["./src/data/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@models/*": ["./src/models/*"],
+      "@tokens/*": ["./src/tokens/*"],
       "@source": [
         "./src/index.ts"
       ]
