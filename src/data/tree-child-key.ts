@@ -1,0 +1,1 @@
+export const TREE_CHILD_KEY = 'children' as const;
