@@ -8,16 +8,25 @@ import { getGlobalContext } from "@utils/get-global-context";
 import type { Context, FC } from "react";
 import { useContext } from "react";
 
+/**
+ * @deprecated Will be replaced to @akb2/react-components
+ */
 export const componentsContextFabric = <
   TComponents extends ReactComponents<RouterComponents>,
 >(): CreateComponentsContext<TComponents> => {
   const ComponentsContext = getGlobalContext<TComponents>(COMPONENTS_CONTEXT_KEY);
 
+  /**
+   * @deprecated Will be replaced to @akb2/react-components
+   */
   const ComponentsProvider: FC<ComponentsProviderProps<TComponents>> = ({
     components,
     children,
   }) => <ComponentsContext.Provider value={components}>{children}</ComponentsContext.Provider>;
 
+  /**
+   * @deprecated Will be replaced to @akb2/react-components
+   */
   const useComponents = (): TComponents => {
     const ctx = useContext(ComponentsContext);
 
@@ -29,6 +38,9 @@ export const componentsContextFabric = <
   };
 
   return {
+    /**
+     * @deprecated Will be replaced to @akb2/react-components
+     */
     ComponentsContext: ComponentsContext as unknown as Context<Nullable<TComponents>>,
     ComponentsProvider,
     useComponents,

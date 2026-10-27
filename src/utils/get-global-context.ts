@@ -1,6 +1,9 @@
 import { Nullable } from "@akb2/types-tools";
 import { Context, createContext } from "react";
 
+/**
+ * @deprecated Will be replaced to @akb2/react-shared
+ */
 export const getGlobalContext = <T extends unknown>(
   key: symbol,
   initialValue: Nullable<T> = null,

@@ -4,6 +4,9 @@ import { ComponentsProviderProps } from "./components-provider-props";
 import { ReactComponents } from "./react-components";
 import { RouterComponents } from "./router-components";
 
+/**
+ * @deprecated Will be replaced to @akb2/react-components
+ */
 export interface CreateComponentsContext<
   TComponents extends ReactComponents<RouterComponents> = ReactComponents<RouterComponents>,
 > {
