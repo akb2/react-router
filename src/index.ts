@@ -1,6 +1,7 @@
 export { componentsContextFabric } from "./fabrics/components-context-fabric";
 export { reactRouterFabric } from "./fabrics/react-router-fabric";
 export { routerContextFabric } from "./fabrics/router-context-fabric";
+export type { FullPageLoaderProps } from "./models/full-page-loader-props";
 export type { ReactComponents } from "./models/react-components";
 export type { RouteConfig } from "./models/route-config";
 export type { RouteDefinition } from "./models/route-definition";
