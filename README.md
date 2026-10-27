@@ -23,6 +23,9 @@ The package entry point currently exports:
 | `componentsContextFabric` | Create the components provider and access hook.                |
 | `ReactComponents`         | Map component props to a typed set of React components.        |
 | `RouterComponents`        | Required router components: `FullPageLoader` with empty props. |
+| `RouteConfig`             | One route configuration: path, rendering, and children.        |
+| `RoutesConfig`            | A route configuration map that preserves its supplied type.    |
+| `RouteDefinition`         | One page rendering definition without path fields.             |
 | `RoutesDefinition`        | Type for rendering definitions.                                |
 | `RoutesKeys`              | Route keys as arrays or dot-separated strings.                 |
 | `RoutesPathKeys`          | Dot-separated route keys.                                      |
@@ -238,7 +241,35 @@ type Router = typeof router;
 type ActiveRoute = ReturnType<typeof router.useActivatedRoute>;
 ```
 
-Keep the inferred route object type to preserve specific route keys. `RoutesDefinition` describes rendering definitions rather than the complete path configuration. Other internal types are not exported at the package root.
+`RouteConfig` describes one route with path and rendering fields. `RoutesConfig<T>` describes a route map and preserves the supplied type `T`. Its default input fields are permissive; use `RoutesConfig<Record<string, RouteConfig>>` to validate each route strictly.
+
+`RouteDefinition` describes page rendering without `path`, `paths`, or `isNotFound`. `RoutesDefinition` is a map of those definitions. Add a path to a definition to use it as a route configuration.
+
+Use `satisfies` to check the object shape while preserving concrete keys for type inference:
+
+```tsx
+import type {
+  RouteConfig,
+  RouteDefinition,
+  RoutesConfig,
+  RoutesDefinition,
+} from "@akb2/react-router";
+
+const userDefinition = {
+  Template: () => <h1>User details</h1>,
+} satisfies RouteDefinition;
+
+const pageDefinitions = {
+  detail: userDefinition,
+} satisfies RoutesDefinition;
+
+const typedRoutes = {
+  detail: { ...pageDefinitions.detail, path: "users/:id" },
+  notFound: { isNotFound: true, Template: () => <h1>Not found</h1> },
+} satisfies RoutesConfig<Record<string, RouteConfig>>;
+```
+
+Avoid annotating the object with the broad `RoutesConfig` type when you need specific route keys. Derive hook and factory result types with `typeof` and `ReturnType`, as shown above.
 
 ## Known limitations
 

@@ -23,6 +23,9 @@ React, Wouter и `@akb2/types-tools` обязательны как peer dependen
 | `componentsContextFabric` | Создание провайдера компонентов и хука доступа к ним.                   |
 | `ReactComponents`         | Преобразование набора пропсов в типизированный набор React-компонентов. |
 | `RouterComponents`        | Обязательные компоненты роутера: `FullPageLoader` с пустыми пропсами.   |
+| `RouteConfig`             | Конфигурация одного маршрута: путь, отображение и дочерние маршруты.    |
+| `RoutesConfig`            | Набор конфигураций маршрутов с сохранением переданного типа.            |
+| `RouteDefinition`         | Определение отображения одной страницы без полей пути.                  |
 | `RoutesDefinition`        | Тип определений отображения.                                            |
 | `RoutesKeys`              | Ключи маршрутов в виде массивов или строк с точками.                    |
 | `RoutesPathKeys`          | Ключи маршрутов в виде строк с точками.                                 |
@@ -238,7 +241,35 @@ type Router = typeof router;
 type ActiveRoute = ReturnType<typeof router.useActivatedRoute>;
 ```
 
-Сохраняйте выведенный тип объекта маршрутов, чтобы не потерять конкретные ключи. `RoutesDefinition` описывает определения отображения, а не полную конфигурацию путей. Остальные внутренние типы не экспортируются из корня пакета.
+`RouteConfig` описывает один маршрут с полями пути и отображения. `RoutesConfig<T>` описывает набор маршрутов и сохраняет переданный тип `T`. По умолчанию он допускает свободные входные значения; для строгой проверки каждого маршрута используйте `RoutesConfig<Record<string, RouteConfig>>`.
+
+`RouteDefinition` описывает отображение страницы без полей `path`, `paths` и `isNotFound`. `RoutesDefinition` — набор таких определений. Определение можно дополнить путём и использовать как конфигурацию маршрута.
+
+Используйте `satisfies`, чтобы проверить форму объекта и сохранить конкретные ключи для вывода типов:
+
+```tsx
+import type {
+  RouteConfig,
+  RouteDefinition,
+  RoutesConfig,
+  RoutesDefinition,
+} from "@akb2/react-router";
+
+const userDefinition = {
+  Template: () => <h1>User details</h1>,
+} satisfies RouteDefinition;
+
+const pageDefinitions = {
+  detail: userDefinition,
+} satisfies RoutesDefinition;
+
+const typedRoutes = {
+  detail: { ...pageDefinitions.detail, path: "users/:id" },
+  notFound: { isNotFound: true, Template: () => <h1>Not found</h1> },
+} satisfies RoutesConfig<Record<string, RouteConfig>>;
+```
+
+Не аннотируйте объект широким типом `RoutesConfig`, если нужны конкретные ключи маршрутов. Типы хуков и результата фабрики можно получать через `typeof` и `ReturnType`, как в примере выше.
 
 ## Известные ограничения
 
