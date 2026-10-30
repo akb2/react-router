@@ -24,8 +24,7 @@ describe("useRouteQueryState", () => {
     expect(window.location.search).toBe("?tab=settings&page=2");
   });
 
-  // Known bug: useLocation substitutes path params before separating the query string.
-  it.fails("replaces the query parameter while preserving path and other params", () => {
+  it("replaces the query parameter while preserving path and other params", () => {
     const replace = vi.spyOn(window.history, "replaceState");
     const { result } = renderHook(() => router.useRouteQueryState<string>("tab", "overview"));
     act(() => result.current[1]("settings"));

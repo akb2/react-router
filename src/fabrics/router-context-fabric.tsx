@@ -195,14 +195,13 @@ export const routerContextFabric = <Routes extends RoutesConfig = RoutesConfig>(
       const urls = createUrlsFromRouteConfig(key, pathParams, queryParams, true);
       const urlMask =
         urls.find((url) => {
-          const segments = url.split("/").filter(Boolean);
+          const segments = url.split("?")[0].split("/").filter(Boolean);
 
           return Object.keys(pathParams ?? {}).every((key) => segments.includes(":" + key));
         }) ?? urls[0];
 
-      const [preparedUrl, preparedQueries] = createUrlFromPaths(urlMask, pathParams, false).split(
-        "?",
-      );
+      const [pathnameMask, preparedQueries] = urlMask.split("?");
+      const preparedUrl = createUrlFromPaths(pathnameMask, pathParams, false);
       const currentQueryParams = stringToQueryParams(preparedQueries);
       const url = preparedUrl + queryParamsToString({ ...currentQueryParams, ...queryParams });
 

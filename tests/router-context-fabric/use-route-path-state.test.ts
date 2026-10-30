@@ -23,8 +23,7 @@ describe("useRoutePathState", () => {
     expect(window.location.pathname).toBe("/users/43");
   });
 
-  // Known bug: useLocation substitutes path params before separating the query string.
-  it.fails("replaces the path parameter while preserving query params", () => {
+  it("replaces the path parameter while preserving query params", () => {
     const replace = vi.spyOn(window.history, "replaceState");
     const { result } = renderHook(() => router.useRoutePathState<string>("id", "fallback"));
     act(() => result.current[1]("43"));

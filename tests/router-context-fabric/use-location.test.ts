@@ -17,8 +17,7 @@ describe("useLocation", () => {
     expect(result.current[0]).toBe("/users/42");
   });
 
-  // Known bug: useLocation substitutes path params before separating the query string.
-  it.fails("navigates by route key and updates its pathname", () => {
+  it("navigates by route key and updates its pathname", () => {
     const { result } = renderHook(() => router.useLocation());
 
     act(() => result.current[1]("users.detail", { id: 42 }, { page: 2 }));
@@ -31,6 +30,13 @@ describe("useLocation", () => {
 
     act(() => result.current[1](["article"], { slug: "hello", id: 7 }));
     expect(window.location.pathname).toBe("/articles/hello/7");
+  });
+
+  it("selects the matching path variant when query params are supplied", () => {
+    const { result } = renderHook(() => router.useLocation());
+    act(() => result.current[1]("article", { slug: "hello", id: 7 }, { page: 2 }));
+    expect(window.location.pathname).toBe("/articles/hello/7");
+    expect(window.location.search).toBe("?page=2");
   });
 
   it("passes replace and history state to navigation", () => {
