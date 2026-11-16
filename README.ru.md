@@ -19,10 +19,11 @@ React, Wouter и `@akb2/types-tools` обязательны как peer dependen
 | Экспорт                   | Назначение                                                              |
 | ------------------------- | ----------------------------------------------------------------------- |
 | `reactRouterFabric`       | Объединение конфигураций маршрутов.                                     |
-| `routerContextFabric`     | Создание провайдера роутера, хуков и функций построения URL.            |
+| `routerContextFabric`     | Создание провайдера роутера, хуков, поиска маршрутов и построения URL.  |
 | `componentsContextFabric` | Создание провайдера компонентов и хука доступа к ним.                   |
 | `ReactComponents`         | Преобразование набора пропсов в типизированный набор React-компонентов. |
 | `RouterComponents`        | Обязательные компоненты роутера: `FullPageLoader` с пустыми пропсами.   |
+| `FullPageLoaderProps`     | Пропсы компонента загрузки `FullPageLoader`.                            |
 | `RouteConfig`             | Конфигурация одного маршрута: путь, отображение и дочерние маршруты.    |
 | `RoutesConfig`            | Набор конфигураций маршрутов с сохранением переданного типа.            |
 | `RouteDefinition`         | Определение отображения одной страницы без полей пути.                  |
@@ -165,6 +166,34 @@ router.createUrlsFromRouteConfig("users.detail", { id: 42 });
 - Значения path-параметров подставляются напрямую, без кодирования. Отсутствующие значения заменяются на `*`.
 - При `safePathParams: true` сохраняются плейсхолдеры вроде `:id`.
 
+## Поиск маршрутов
+
+Функции поиска из результата `routerContextFabric(routes)` можно вызывать вне React:
+
+```ts
+const byUrl = router.getRouteByUrl("/users/42?tab=profile");
+byUrl.activatedRoute; // routes.users.children.detail
+byUrl.pathParams; // { id: "42" }
+byUrl.queryParams; // { tab: "profile" }
+
+const byKey = router.getRouteByKey("users.detail");
+byKey.route; // routes.users.children.detail
+router.getRouteByKey(["users", "detail"]); // Тот же поиск по ключу.
+```
+
+`getRouteByUrl(url, followRedirects = false)` принимает pathname с необязательной query-частью и использует тот же алгоритм сопоставления, что и `useActivatedRoute`. `getRouteByKey(key, followRedirects = false)` принимает типизированную строку с точками или массив ключей (`RoutesKeys<typeof routes>`).
+
+| Метод           | Поля результата                                                                                        |
+| --------------- | ------------------------------------------------------------------------------------------------------ |
+| `getRouteByUrl` | `activatedRoute`, `routeKey`, `routeKeyString`, `parents`, `pathParams`, `queryParams`, `routeUrlMask` |
+| `getRouteByKey` | `route`, `routeKey`, `routeKeyString`, `parents`                                                       |
+
+`routeKey` — массив ключей, `routeKeyString` — его строковая форма с точками. `parents` содержит конфигурации предков без самого найденного маршрута. Поля `route` и `activatedRoute` ссылаются на исходные объекты конфигураций.
+
+При `followRedirects: true` обе функции проходят цепочку `redirectUrl` и возвращают метаданные целевого маршрута. Значение `false` по умолчанию возвращает сам маршрут с редиректом.
+
+Если URL не найден, возвращается настроенный запасной маршрут с сохранением метаданных совпавшего префикса. При отсутствии ключа во время выполнения результат содержит собственный ключ запасного маршрута и пустой `parents`. Цели редиректов разрешаются через поиск по URL; `getRouteByKey(key, true)` сохраняет ключи и родителей из этого поиска, в том числе при переходе к запасному маршруту.
+
 ## Хуки навигации и сопоставления
 
 Вызывайте хуки внутри компонентов или собственных хуков:
@@ -238,6 +267,8 @@ import type { RoutesKeys, RoutesPathKeys } from "@akb2/react-router";
 type Key = RoutesKeys<typeof routes>;
 type PathKey = RoutesPathKeys<typeof routes>;
 type Router = typeof router;
+type RouteByUrl = ReturnType<typeof router.getRouteByUrl>;
+type RouteByKey = ReturnType<typeof router.getRouteByKey>;
 type ActiveRoute = ReturnType<typeof router.useActivatedRoute>;
 ```
 
@@ -273,10 +304,7 @@ const typedRoutes = {
 
 ## Известные ограничения
 
-Четыре теста с `it.fails` фиксируют две ошибки реализации:
-
-- При навигации с динамическими path-параметрами и query-параметрами последний параметр пути может заменяться на `*`. Это также затрагивает хуки состояния.
-- Короткая альтернатива пути может совпасть слишком рано, из-за чего определение активного маршрута возвращает запасной маршрут для корректной длинной альтернативы.
+Четыре сценария с `it.fails` фиксируют одно ограничение сопоставления: короткая альтернатива пути может совпасть слишком рано, из-за чего `getRouteByUrl` и `useActivatedRoute` возвращают запасной маршрут для корректной длинной альтернативы. Оно также затрагивает цели редиректов, разрешаемые через `getRouteByKey`.
 
 Контексты роутера глобально разделяются между вызовами фабрики, а функции замыкают конфигурацию своей фабрики. Избегайте вложенных провайдеров с несвязанными конфигурациями.
 

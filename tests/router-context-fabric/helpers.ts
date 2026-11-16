@@ -17,7 +17,10 @@ export const routes = {
   users: {
     path: "users",
     Template: Page,
-    children: { detail: { path: ":id", Template: Page } },
+    children: {
+      detail: { path: ":id", Template: Page },
+      create: { path: "new", Template: Page },
+    },
   },
   article: { paths: ["articles/:id", "articles/:slug/:id"], Template: Page },
   archive: {
@@ -25,6 +28,9 @@ export const routes = {
     Template: Page,
     children: { year: { paths: [":year", "year/:year"], Template: Page } },
   },
+  legacy: { path: "legacy", redirectUrl: "/users/42?tab=profile" },
+  older: { path: "older", redirectUrl: "/legacy" },
+  broken: { path: "broken", redirectUrl: "/missing" },
   notFound: { isNotFound: true, Template: Page },
 };
 

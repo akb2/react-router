@@ -16,19 +16,20 @@ React, Wouter, and `@akb2/types-tools` are required peers. This repository uses 
 
 The package entry point currently exports:
 
-| Export                    | Purpose                                                        |
-| ------------------------- | -------------------------------------------------------------- |
-| `reactRouterFabric`       | Merge route configurations.                                    |
-| `routerContextFabric`     | Create the router provider, hooks, and URL builders.           |
-| `componentsContextFabric` | Create the components provider and access hook.                |
-| `ReactComponents`         | Map component props to a typed set of React components.        |
-| `RouterComponents`        | Required router components: `FullPageLoader` with empty props. |
-| `RouteConfig`             | One route configuration: path, rendering, and children.        |
-| `RoutesConfig`            | A route configuration map that preserves its supplied type.    |
-| `RouteDefinition`         | One page rendering definition without path fields.             |
-| `RoutesDefinition`        | Type for rendering definitions.                                |
-| `RoutesKeys`              | Route keys as arrays or dot-separated strings.                 |
-| `RoutesPathKeys`          | Dot-separated route keys.                                      |
+| Export                    | Purpose                                                             |
+| ------------------------- | ------------------------------------------------------------------- |
+| `reactRouterFabric`       | Merge route configurations.                                         |
+| `routerContextFabric`     | Create the router provider, hooks, URL builders, and route lookups. |
+| `componentsContextFabric` | Create the components provider and access hook.                     |
+| `ReactComponents`         | Map component props to a typed set of React components.             |
+| `RouterComponents`        | Required router components: `FullPageLoader` with empty props.      |
+| `FullPageLoaderProps`     | Props for the router's loading component; currently empty.          |
+| `RouteConfig`             | One route configuration: path, rendering, and children.             |
+| `RoutesConfig`            | A route configuration map that preserves its supplied type.         |
+| `RouteDefinition`         | One page rendering definition without path fields.                  |
+| `RoutesDefinition`        | Type for rendering definitions.                                     |
+| `RoutesKeys`              | Route keys as arrays or dot-separated strings.                      |
+| `RoutesPathKeys`          | Dot-separated route keys.                                           |
 
 Import all three factories directly from `@akb2/react-router`.
 
@@ -165,6 +166,34 @@ Both builders accept `(key, pathParams?, queryParams?, safePathParams?)`. They c
 - Path values are substituted directly, without URL encoding. Missing values become `*`.
 - Set `safePathParams` to `true` to keep placeholders such as `:id`.
 
+## Find routes
+
+The lookup methods returned by `routerContextFabric(routes)` can be called outside React:
+
+```ts
+const byUrl = router.getRouteByUrl("/users/42?tab=profile");
+byUrl.activatedRoute; // routes.users.children.detail
+byUrl.pathParams; // { id: "42" }
+byUrl.queryParams; // { tab: "profile" }
+
+const byKey = router.getRouteByKey("users.detail");
+byKey.route; // routes.users.children.detail
+router.getRouteByKey(["users", "detail"]); // The same key lookup.
+```
+
+`getRouteByUrl(url, followRedirects = false)` accepts a pathname with an optional query string and uses the same matcher as `useActivatedRoute`. `getRouteByKey(key, followRedirects = false)` accepts a typed dot-separated string or array of keys (`RoutesKeys<typeof routes>`).
+
+| Method          | Result fields                                                                                          |
+| --------------- | ------------------------------------------------------------------------------------------------------ |
+| `getRouteByUrl` | `activatedRoute`, `routeKey`, `routeKeyString`, `parents`, `pathParams`, `queryParams`, `routeUrlMask` |
+| `getRouteByKey` | `route`, `routeKey`, `routeKeyString`, `parents`                                                       |
+
+`routeKey` is the key array and `routeKeyString` its dot-separated form. `parents` contains ancestor configurations, excluding the returned route itself. The `route` and `activatedRoute` fields reference the original configuration objects.
+
+With `followRedirects: true`, both methods follow the `redirectUrl` chain and return the destination's metadata. The default `false` returns the redirect route itself.
+
+An unmatched URL returns the configured fallback route while retaining metadata for any matched prefix. A direct invalid key at runtime returns the fallback route's own key and empty `parents`. Redirect destinations are resolved through URL lookup; `getRouteByKey(key, true)` keeps that lookup's key and parent metadata, including fallback results.
+
 ## Navigation and matching hooks
 
 Call hooks inside components or custom hooks:
@@ -238,6 +267,8 @@ import type { RoutesKeys, RoutesPathKeys } from "@akb2/react-router";
 type Key = RoutesKeys<typeof routes>;
 type PathKey = RoutesPathKeys<typeof routes>;
 type Router = typeof router;
+type RouteByUrl = ReturnType<typeof router.getRouteByUrl>;
+type RouteByKey = ReturnType<typeof router.getRouteByKey>;
 type ActiveRoute = ReturnType<typeof router.useActivatedRoute>;
 ```
 
@@ -273,10 +304,7 @@ Avoid annotating the object with the broad `RoutesConfig` type when you need spe
 
 ## Known limitations
 
-Four `it.fails` tests document two implementation defects:
-
-- Combining dynamic path parameters with query parameters during navigation can replace the final path parameter with `*`. This also affects the state hooks.
-- A shorter path alternative can match too early, causing active-route detection to return the fallback for a valid longer alternative.
+Four `it.fails` cases document one matching limitation: a shorter path alternative can match too early, causing `getRouteByUrl` and `useActivatedRoute` to return the fallback for a valid longer alternative. This also affects redirect destinations resolved through `getRouteByKey`.
 
 Router contexts are shared globally across factory calls, while helpers capture each factory's configuration. Avoid nesting providers from unrelated configurations.
 

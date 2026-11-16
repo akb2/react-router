@@ -1,30 +1,24 @@
 import {
-  anyToArray,
   anyToString,
   CustomObject,
   isDefined,
-  Nullable,
-  SimpleObject,
-  smartJoin,
+  Nullable
 } from "@akb2/types-tools";
-import { DELTA_NEGATIVE, DELTA_POSITIVE, DELTA_ZERO } from "@data/delta";
-import { ROUTER_HELPER_JOINER } from "@data/router";
 import { CreateRouterContext } from "@models/create-router-context";
 import { ObjectChain } from "@models/object-chain";
 import { RouteConfig } from "@models/route-config";
-import { RouteConfigSearchData } from "@models/route-config-search-data";
 import { RoutesConfig } from "@models/routes-config";
 import { RoutesKeys, RoutesPathKeys } from "@models/routes-keys";
 import { UseActivatedRouteType } from "@models/use-activated-route-type";
 import { SetLocationOptions, UseLocationType } from "@models/use-location";
 import { UseRoute } from "@models/use-route";
 import { ROUTER_CONTEXT_KEY } from "@tokens/router";
-import { comparePathesAndAddToPathParams } from "@utils/compare-pathes-and-add-to-path-params";
 import { createUrlFromPaths } from "@utils/create-url-from-paths";
 import { createUrlFromRouteConfig as originalCreateUrlFromRouteConfig } from "@utils/create-url-from-route-config";
 import { createUrlsFromRouteConfig as originalCreateUrlsFromRouteConfig } from "@utils/create-urls-from-route-config";
-import { entriesToObject } from "@utils/entries-to-object";
 import { getGlobalContext } from "@utils/get-global-context";
+import { getRouteByKey as originalGetRouteByKey } from "@utils/get-route-by-key";
+import { getRouteByUrl as originalGetRouteByUrl } from "@utils/get-route-by-url";
 import { queryParamsToString } from "@utils/query-params-to-string";
 import { stringToQueryParams } from "@utils/string-to-query-params";
 import { FC, Suspense, useCallback, useMemo } from "react";
@@ -39,22 +33,6 @@ import { componentsContextFabric } from "./components-context-fabric";
 export const routerContextFabric = <Routes extends RoutesConfig = RoutesConfig>(
   routes: Routes,
 ): CreateRouterContext<Routes> => {
-  const compareRoutePriority = (first: string, second: string): number => {
-    const firstSegments = first.split("/").filter(Boolean);
-    const secondSegments = second.split("/").filter(Boolean);
-
-    for (let i = 0; i < firstSegments.length; i++) {
-      const isFirstParameterized = firstSegments[i].startsWith(":");
-      const isSecondParameterized = secondSegments[i].startsWith(":");
-
-      if (isFirstParameterized !== isSecondParameterized) {
-        return isFirstParameterized ? DELTA_POSITIVE : DELTA_NEGATIVE;
-      }
-    }
-
-    return DELTA_ZERO;
-  };
-
   const validateRoutes = (
     currentRoutes: RoutesConfig,
     parentPaths: string[] = [""],
@@ -173,6 +151,18 @@ export const routerContextFabric = <Routes extends RoutesConfig = RoutesConfig>(
    * Utils
    */
 
+  const getRouteByUrl = (url: string, followRedirects?: boolean) => originalGetRouteByUrl(
+    routes,
+    url,
+    followRedirects
+  );
+
+  const getRouteByKey = (key: RoutesKeys<Routes>, followRedirects?: boolean) => originalGetRouteByKey(
+    routes,
+    key,
+    followRedirects
+  );
+
   const createUrlFromRouteConfig = originalCreateUrlFromRouteConfig.bind(null, routes);
   const createUrlsFromRouteConfig = originalCreateUrlsFromRouteConfig.bind(null, routes);
 
@@ -215,98 +205,11 @@ export const routerContextFabric = <Routes extends RoutesConfig = RoutesConfig>(
     const [location] = useLocation();
     const [searchParams] = useSearchParams();
 
-    const pathes = useMemo(() => {
-      const pathes = location.split("/").filter(Boolean);
-
-      return pathes.length > 0 ? pathes : [""];
-    }, [location]);
-
-    return useMemo((): UseActivatedRouteType<Routes> => {
-      const routeKey: ObjectChain<Routes> = [] as unknown as ObjectChain<Routes>;
-      const parents: RouteConfig[] = [];
-      const pathParams: Record<string, string> = {};
-      const queryParams = entriesToObject<string>(searchParams.entries());
-      let notFoundRouteConfig: Nullable<RouteConfig> = null;
-      let activatedRoute: Nullable<RouteConfig> = null;
-      let currentRoutesConfig: RoutesConfig = routes;
-      let beforePaths = "";
-      let level = 0;
-
-      for (const path of pathes) {
-        const currentPath = Boolean(beforePaths) ? beforePaths + "/" + path : path;
-        const routes = new Map<string, RouteConfigSearchData>();
-
-        for (const key in currentRoutesConfig) {
-          const config = currentRoutesConfig[key] as RouteConfig;
-
-          if (config.isNotFound === true) {
-            if (level > 0) {
-              throw new Error("Not found route must be defined at the root level");
-            }
-
-            notFoundRouteConfig = config as RouteConfig;
-
-            continue;
-          }
-
-          const paths = isDefined(config.path)
-            ? [config.path]
-            : isDefined(config.paths)
-              ? anyToArray(config.paths)
-              : [];
-
-          paths.forEach((path, index) => {
-            const candidatePathParams: SimpleObject = {};
-
-            if (comparePathesAndAddToPathParams(currentPath, path, candidatePathParams)) {
-              routes.set(smartJoin(ROUTER_HELPER_JOINER, key, anyToString(index)), {
-                path,
-                config,
-                pathParams: candidatePathParams,
-              });
-            }
-          });
-        }
-
-        if (routes.size > 0) {
-          const routesEntries = Array.from(routes.entries());
-          const selectedRouteEntry = routesEntries.reduce((selected, current) =>
-            compareRoutePriority(current[1].path, selected[1].path) < 0 ? current : selected,
-          );
-          const [selectedKey, { config: selectedRoute, pathParams: selectedPathParams }] =
-            selectedRouteEntry;
-
-          if (isDefined(activatedRoute)) {
-            parents.push(activatedRoute);
-          }
-
-          beforePaths = "";
-          activatedRoute = selectedRoute as RouteConfig;
-          currentRoutesConfig = (activatedRoute.children ?? {}) as RoutesConfig;
-
-          Object.assign(pathParams, selectedPathParams);
-          (routeKey as unknown[]).push(selectedKey.split(ROUTER_HELPER_JOINER)[0]);
-
-          level++;
-        } else {
-          beforePaths = Boolean(beforePaths) ? beforePaths + "/" + path : path;
-        }
-      }
-
-      if (Boolean(beforePaths) || !isDefined(activatedRoute)) {
-        activatedRoute = notFoundRouteConfig!;
-      }
-
-      return {
-        activatedRoute,
-        routeKey,
-        parents,
-        pathParams,
-        queryParams,
-        routeKeyString: routeKey.join(".") as RoutesPathKeys<Routes>,
-        routeUrlMask: beforePaths,
-      };
-    }, [pathes, searchParams]);
+    return useMemo((): UseActivatedRouteType<Routes> => originalGetRouteByUrl<Routes>(
+      routes,
+      [location, searchParams].join('?'),
+      false
+    ), [location, searchParams]);
   };
 
   const useRoutePathState = <T extends string | number>(
@@ -360,6 +263,8 @@ export const routerContextFabric = <Routes extends RoutesConfig = RoutesConfig>(
     RouterContext,
     RouterProvider,
     // Utils
+    getRouteByUrl,
+    getRouteByKey,
     createUrlFromRouteConfig,
     createUrlsFromRouteConfig,
     // Hooks
