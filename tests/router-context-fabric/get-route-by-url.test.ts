@@ -9,6 +9,7 @@ describe("getRouteByUrl", () => {
       routeKeyString: "home",
       routeUrlMask: "",
       parents: [],
+      parentsRouteKeysString: [],
       pathParams: {},
       queryParams: {},
     });
@@ -21,6 +22,7 @@ describe("getRouteByUrl", () => {
       routeKeyString: "users.detail",
       routeUrlMask: "",
       parents: [routes.users],
+      parentsRouteKeysString: ["users"],
       pathParams: { id: "42" },
       queryParams: { tab: "profile", page: "2" },
     });

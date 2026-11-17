@@ -8,4 +8,5 @@ export interface RouteType<Routes extends RoutesConfig> {
   routeKey: ObjectChain<Routes>;
   routeKeyString: RoutesPathKeys<Routes>;
   parents: RouteConfig[];
+  parentsRouteKeysString: RoutesPathKeys<Routes>[];
 }

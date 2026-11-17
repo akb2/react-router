@@ -21,6 +21,7 @@ export const getRouteByUrl = <Routes extends RoutesConfig>(
   const searchParams = new URLSearchParams(rawUrl[1] ?? "");
   const routeKey: ObjectChain<Routes> = [] as unknown as ObjectChain<Routes>;
   const parents: RouteConfig[] = [];
+  const parentsRouteKeysString: RoutesPathKeys<Routes>[] = [];
   const pathParams: Record<string, string> = {};
   const queryParams = entriesToObject<string>(searchParams.entries());
   let notFoundRouteConfig: Nullable<RouteConfig> = null;
@@ -77,6 +78,7 @@ export const getRouteByUrl = <Routes extends RoutesConfig>(
 
       if (isDefined(activatedRoute)) {
         parents.push(activatedRoute);
+        parentsRouteKeysString.push(routeKey.join(".") as RoutesPathKeys<Routes>);
       }
 
       beforePaths = "";
@@ -110,6 +112,7 @@ export const getRouteByUrl = <Routes extends RoutesConfig>(
     activatedRoute,
     routeKey,
     parents,
+    parentsRouteKeysString,
     pathParams,
     queryParams,
     routeKeyString: routeKey.join(".") as RoutesPathKeys<Routes>,

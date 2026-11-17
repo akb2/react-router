@@ -15,6 +15,7 @@ export const getRouteByKey = <Routes extends RoutesConfig>(
     ? mixedKeys
     : mixedKeys.split(".");
   const parents: RouteConfig[] = [];
+  const parentsRouteKeysString: RoutesPathKeys<Routes>[] = [];
   const [notFoundRouteKey, notFoundRouteConfig] =
     Object
       .entries(routes)
@@ -22,8 +23,9 @@ export const getRouteByKey = <Routes extends RoutesConfig>(
   const notFoundResult = {
     route: notFoundRouteConfig,
     routeKey: [notFoundRouteKey] as ObjectChain<Routes>,
-    parents: [],
     routeKeyString: notFoundRouteKey as RoutesPathKeys<Routes>,
+    parents: [],
+    parentsRouteKeysString: [],
   };
   let routeKey: ObjectChain<Routes> = [] as unknown as ObjectChain<Routes>;
   let route: Nullable<RouteConfig> = null;
@@ -32,6 +34,7 @@ export const getRouteByKey = <Routes extends RoutesConfig>(
   for (const key of keys) {
     if (isDefined(route)) {
       parents.push(route);
+      parentsRouteKeysString.push(routeKey.join(".") as RoutesPathKeys<Routes>);
     }
 
     if (!isDefined(currentRoutesConfig[key])) {
@@ -63,6 +66,7 @@ export const getRouteByKey = <Routes extends RoutesConfig>(
     route,
     routeKey,
     parents,
+    parentsRouteKeysString,
     routeKeyString: routeKey.join(".") as RoutesPathKeys<Routes>,
   };
 };

@@ -21,6 +21,7 @@ describe("useActivatedRoute", () => {
       routeKeyString: "users.detail",
       routeUrlMask: "",
       parents: [routes.users],
+      parentsRouteKeysString: ["users"],
       pathParams: { id: "42" },
       queryParams: { tab: "profile" },
     });

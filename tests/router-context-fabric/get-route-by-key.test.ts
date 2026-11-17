@@ -8,6 +8,7 @@ describe("getRouteByKey", () => {
       routeKey: ["home"],
       routeKeyString: "home",
       parents: [],
+      parentsRouteKeysString: [],
     });
   });
 
@@ -19,6 +20,7 @@ describe("getRouteByKey", () => {
         routeKey: ["users", "detail"],
         routeKeyString: "users.detail",
         parents: [routes.users],
+        parentsRouteKeysString: ["users"],
       });
     },
   );
@@ -63,6 +65,7 @@ describe("getRouteByKey", () => {
       routeKey: ["users", "detail"],
       routeKeyString: "users.detail",
       parents: [routes.users],
+      parentsRouteKeysString: ["users"],
     });
   });
 
@@ -78,6 +81,7 @@ describe("getRouteByKey", () => {
       routeKey: [],
       routeKeyString: "",
       parents: [],
+      parentsRouteKeysString: [],
     });
   });
 
